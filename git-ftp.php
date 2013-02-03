@@ -79,7 +79,8 @@ class GitFtp
         if (file_exists($file)) {
             $data = include $file;
         }
-        if(isset($config['name1'])){
+
+        if(isset($config['name1']) AND $config['name1'] AND isset($data[$config['name1']])){
             $config = $config+$data[$config['name1']];
             unset($data[$config['name1']]);
             unset($config['name1']);
@@ -225,7 +226,14 @@ class GitFtp
             die("empty commit");
         }
         $config = $this->getConfig();
-        $config['remoteCommit'] = $commit;
+        $commits = $this->getCommits();
+        if(!isset($commits[$commit])){
+            die('commit not found');
+        }
+        $config['remoteCommit'] = $commits[$commit];
+        if($this->config){
+            $this->config['remoteCommit'] = $commits[$commit];
+        }
         $this->saveServer($config);
     }
 
@@ -478,6 +486,9 @@ if(isset($_POST['saveServer'])){
         $message = 'Name is required';
     }
 }
+if(isset($_POST['setCommit']) AND isset($_POST['commit'])){
+    $git->setCurrentCommit($_POST['commit']);
+}
 
 
 if(isset($_POST['upload'])){
@@ -525,7 +536,9 @@ if(isset($_GET['fileDiff'])){
                 overflow: hidden;
             }
             .submit {
-                float: right;
+                position: fixed;
+                bottom: 0px;
+                right:20px;
             }
         </style>
     </head>
@@ -648,13 +661,28 @@ function renderServerForm($git, $server = null){
                 border-right: 1px solid gray;
                 padding: 0 5px 5px 0;
             }
+            .commit-list p {
+                color: #696969;
+                font-style: italic;
+                font-size: 10px;
+            }
+            .commit-list .current-commit {
+                color: #006400;
+                font-weight: bold;
+            }
             .files-list {
                 float: right;
                 width: 570px;
             }
+            .commit-list-box {
+                height: 500px;
+                overflow: auto;
+            }
             iframe {
                 border: 0;
                 width: 100%;
+                height: 500px;
+                overflow: auto;
             }
         </style>
         <script type='text/javascript'>
@@ -801,21 +829,30 @@ function renderServerForm($git, $server = null){
 
             <div class="commit-list">
             <h3>Commits list</h3>
-                <form id="commit-form"  method="GET">
-                    <input type="hidden" name="server" value="<?php echo $_GET['server']?>" />
-                    <?php
-                    $cr = $git->getCurrentCommit();
-                    $cr = $cr['commit'];
-                    foreach($git->getCommits() as $r):?>
-                        <p>
-                            <input type="radio" name="commit" <?php  if($cr == $r['commit']) echo'checked="checked"' ?> value="<?php echo $r['commit']?>" id="commit-<?php echo $r['commit']?>" /> <label  for="commit-<?php echo $r['commit']?>"><?php echo $r['message']?></label><br>
-                        </p>
+                <div class="commit-list-box">
+                    <form id="commit-form"  method="POST">
+                        <input type="hidden" name="server" value="<?php echo $_GET['server']?>" />
+                        <?php
+                        $cr = $git->getCurrentCommit();
+                        $cr = $cr['commit'];
+                        $active = false;
+                        foreach($git->getCommits() as $r):
+                            if($cr == $r['commit']) $active=true;                        ?>
+                            <div class="<?php  if($active) echo'current-commit"' ?>">
+                                <input type="radio" name="commit" <?php  if($cr == $r['commit']) echo'checked="checked"' ?> value="<?php echo $r['commit']?>" id="commit-<?php echo $r['commit']?>" /> <label  for="commit-<?php echo $r['commit']?>"><?php echo $r['message']?></label><br>
+                            </div>
                         <?php endforeach;?>
-                </form>
+                        <p>
+                            For the first time you probably wish to upload the project using advanced ftp client, like Fillezilla.<br>
+                            After that you can tell the git-ftp what commit is a current commit uploaded to the server.
+                        </p>
+                        <button name="setCommit" type="submit">Set this commit!</button>
+                    </form>
+                </div>
             </div>
 
             <div class="files-list">
-                <iframe   onload = "setIframeHeight( this )" seamless="seamless" src="<?php
+                <iframe class="file-list-iframe"  onload = "setIframeHeight( this )" seamless="seamless" src="<?php
                     $self = $_SERVER['PHP_SELF'];
                     $url = $self.'?project='.$project.'&server='.$server.'&fileDiff=true';
                     echo $url?>"></iframe>

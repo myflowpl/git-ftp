@@ -79,7 +79,8 @@ class GitFtp
         if (file_exists($file)) {
             $data = include $file;
         }
-        if(isset($config['name1'])){
+
+        if(isset($config['name1']) AND $config['name1'] AND isset($data[$config['name1']])){
             $config = $config+$data[$config['name1']];
             unset($data[$config['name1']]);
             unset($config['name1']);
@@ -225,7 +226,14 @@ class GitFtp
             die("empty commit");
         }
         $config = $this->getConfig();
-        $config['remoteCommit'] = $commit;
+        $commits = $this->getCommits();
+        if(!isset($commits[$commit])){
+            die('commit not found');
+        }
+        $config['remoteCommit'] = $commits[$commit];
+        if($this->config){
+            $this->config['remoteCommit'] = $commits[$commit];
+        }
         $this->saveServer($config);
     }
 
