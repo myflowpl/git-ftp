@@ -226,13 +226,17 @@ class GitFtp
             die("empty commit");
         }
         $config = $this->getConfig();
-        $commits = $this->getCommits();
-        if(!isset($commits[$commit])){
-            die('commit not found');
+        if(is_string($commit)){
+            $commits = $this->getCommits();
+            pr($commit);
+            if(!isset($commits[$commit])){
+                die('commit not found');
+            }
+            $commit = $commits[$commit];
         }
-        $config['remoteCommit'] = $commits[$commit];
+        $config['remoteCommit'] = $commit;
         if($this->config){
-            $this->config['remoteCommit'] = $commits[$commit];
+            $this->config['remoteCommit'] = $commit;
         }
         $this->saveServer($config);
     }
