@@ -1,7 +1,7 @@
 git-ftp.php
 =================
 
-* &copy; Piotr B³aszczak, pedro.blaszczak gmail com, 2012
+* &copy; Piotr Blaszczak, pedro.blaszczak gmail com, 2012
 * This application is licenced under [GNU General Public License, Version 3.0]
 
 
@@ -26,7 +26,9 @@ Download & Install
 
 In order to use the script:
 you just need to download the git-ftp.php file and place it to the:
+
 a) directly to your git tracked project directory in order to use it only for one project
+
 b) to directory that contains multiple git tracket projects in order to use it for multiple projects
 
 Example of file structure:
